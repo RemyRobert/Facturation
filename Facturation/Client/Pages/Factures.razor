@@ -1,0 +1,80 @@
+﻿@page "/factures"
+
+@inject IBusinessData data
+
+@using Facturation.Shared
+
+<h1>Factures</h1>
+
+@if (factures == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <tr>
+            <td>NOM</td>
+            <td>NUMERO</td>
+            <td>DATE EMISSION</td>
+            <td>DATE REGLEMENT</td>
+            <td>A PAYÉ</td>
+            <td>DOIT PAYER</td>
+        </tr>
+        @foreach (var facture in factures)
+        {
+            <tr>
+                <td>@facture.ClientName</td>
+                <td>@facture.Number</td>
+                <td>@facture.EmissionDate.ToString("dd/MM/yyyy")</td>
+                @if (facture.ReglementeDate != default(DateTime))
+                {
+                    <td>@facture.ReglementeDate.ToString("dd/MM/yyyy")</td>
+                }
+                else
+                {
+                    <td>Non reglé.</td>
+                }
+                <td>@facture.Paid €</td>
+                <td>@facture.ToPay €</td>
+            </tr>
+        }
+    </table>
+
+    <p>Pour le : @DateTime.Now.Month / @DateTime.Now.Year</p>
+    calculerTotal();
+    <p>Total CA reglé : @totalCARegle €</p>
+    <p>Total CA dû : @totalCAdu €</p>
+    <p>Différence reglé / dû : @(totalCARegle - totalCAdu) €</p>
+}
+
+@code {
+    static BusinessData facture1 = new BusinessData("Bernard", 120.00);
+    static BusinessData facture2 = new BusinessData("Paul", 90.00, DateTime.Now.AddDays(1), 45.00);
+    static BusinessData facture3 = new BusinessData("Mathieu", 26.50, DateTime.Now.AddDays(2), 26.50);
+    static BusinessData facture4 = new BusinessData("Hugo", 19.99, DateTime.Now.AddDays(3), 19.99);
+    static BusinessData facture5 = new BusinessData("Will", 650.80, DateTime.Now.AddDays(4), 640.00);
+    static BusinessData facture6 = new BusinessData("John", 53.72, DateTime.Now.AddDays(5), 50.00);
+    static BusinessData facture7 = new BusinessData("Nathan", 29.00, DateTime.Now.AddDays(6), 29.00);
+
+    private BusinessData[] factures = new BusinessData[] { facture1, facture2, facture3, facture4, facture5, facture6, facture7 };
+
+    private double totalCARegle = 0;
+    private double totalCAdu = 0;
+
+    public void calculerTotal()
+    {
+        foreach (var facture in factures)
+        {
+            if (facture.EmissionDate.Month == DateTime.Now.Month && facture.EmissionDate.Year == DateTime.Now.Year)
+            {
+                totalCAdu += facture.ToPay;
+            }
+
+            if (facture.ReglementeDate.Month == DateTime.Now.Month && facture.ReglementeDate.Year == DateTime.Now.Year)
+            {
+                totalCARegle += facture.Paid;
+            }
+        }
+    }
+}
